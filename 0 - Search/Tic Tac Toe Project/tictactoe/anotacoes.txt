@@ -1,0 +1,46 @@
+for i in range(3):
+    xWonOnLineI = True
+    oWonOnLineI = True
+
+    xWonOnColumnI = True
+    oWonOnColumnI = True
+
+    for j in range(3):
+        if board[i][j] != X:
+            xWonOnLineI = False
+        if board[i][j] != O:
+            oWonOnLineI = False
+
+        if board[j][i] != X:
+            xWonOnColumnI = False
+        if board[j][i] != O:
+            oWonOnColumnI = False
+
+    if xWonOnLineI or xWonOnColumnI:
+        return X
+    if oWonOnLineI or oWonOnColumnI:
+        return O
+    
+
+for i, j in zip(range(3), range(2, -1, -1)):
+    xWonOnDiagonal = True
+    oWonOnDiagonal = True
+
+    xWonOnReverseDiagonal = True
+    oWonOnReverseDiagonal = True
+
+    if board[i][i]!= X:
+        xWonOnDiagonal = False
+    if board[i][i]!= O:
+        oWonOnDiagonal = False
+
+    if board[i][j]!= X:
+        xWonOnReverseDiagonal = False
+    if board[i][j]!= O:
+        oWonOnReverseDiagonal = False
+if xWonOnDiagonal or xWonOnReverseDiagonal:
+    return X
+if oWonOnDiagonal or oWonOnReverseDiagonal:
+    return O
+
+return None
