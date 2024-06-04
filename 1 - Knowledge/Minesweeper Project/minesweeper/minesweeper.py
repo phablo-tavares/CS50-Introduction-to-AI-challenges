@@ -181,6 +181,7 @@ class MinesweeperAI():
             sentence.mark_safe(cell)
 
     def add_knowledge(self, cell, count):
+        print("função chamada")
         """
         Called when the Minesweeper board tells us, for a given
         safe cell, how many neighboring cells have mines in them.
@@ -299,6 +300,7 @@ class MinesweeperAI():
 
 
         #5) add any new sentences to the AI's knowledge base if they can be inferred from existing knowledge
+        newSentencesToKnowledgeBase = []
         for sentence1 in self.knowledge:
             sentence1Cells = sentence1.cells
             sentence1Count = sentence1.count
@@ -307,17 +309,21 @@ class MinesweeperAI():
                 sentence2Count = sentence2.count
                 if sentence1Cells != sentence2Cells:
                     if sentence2Cells.issubset(sentence1Cells):
+                        print("new knowledge")
+                        print(f'sentence 1 cells: {sentence1Cells}')
+                        print(f'sentence 2 cells: {sentence2Cells}')
                         cellsToNewSentence = sentence1Cells.difference(sentence2Cells)
                         countToNewSentence = sentence1Count-sentence2Count
                         newSentence = Sentence(cells=cellsToNewSentence,count=countToNewSentence)
-                        self.knowledge.append(newSentence)
+                        newSentencesToKnowledgeBase.append(newSentence)
         
-        # print(f'base de conhecimento após mudanças: {self.knowledge}')
-
+        for sentence in newSentencesToKnowledgeBase:
+            self.knowledge.append(sentence)
 
 
 
     def make_safe_move(self):
+        print('chamou make_safe_move')
         """
         Returns a safe cell to choose on the Minesweeper board.
         The move must be known to be safe, and not already a move
