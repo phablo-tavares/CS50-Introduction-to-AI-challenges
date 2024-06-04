@@ -1,4 +1,5 @@
 import itertools
+import copy
 import random
 
 
@@ -107,7 +108,8 @@ class Sentence():
         """
         if len(self.cells) == self.count:
             return self.cells
-        return set()
+            # return copy.deepcopy(self.cells)
+        return {}
 
 
     def known_safes(self):
@@ -116,7 +118,8 @@ class Sentence():
         """
         if self.count == 0:
             return self.cells
-        return set()
+            # return copy.deepcopy(self.cells)
+        return {}
 
     def mark_mine(self, cell):
         """
@@ -201,27 +204,99 @@ class MinesweeperAI():
 
         #3) add a new sentence to the AI's knowledge base based on the value of `cell` and `count`
         cellsToNewKnowledge = []
-        cellsToNewKnowledge.append(  (cell[0]-1 , cell[1]-1)  ) 
-        cellsToNewKnowledge.append(  (cell[0]-1 , cell[1])  ) 
-        cellsToNewKnowledge.append(  (cell[0]-1 , cell[1]+1)  ) 
-        cellsToNewKnowledge.append(  (cell[0] , cell[1]-1)  ) 
-        cellsToNewKnowledge.append(  (cell[0] , cell[1]+1)  ) 
-        cellsToNewKnowledge.append(  (cell[0]+1 , cell[1]-1)  ) 
-        cellsToNewKnowledge.append(  (cell[0]+1 , cell[1])  ) 
-        cellsToNewKnowledge.append(  (cell[0]+1 , cell[1]+1)  ) 
+        match cell:
+            #corner cells 
+            case (0,0):
+                cellsToNewKnowledge.append(  (cell[0] , cell[1]+1)  ) 
+                cellsToNewKnowledge.append(  (cell[0]+1 , cell[1]+1)  ) 
+                cellsToNewKnowledge.append(  (cell[0]+1 , cell[1])  ) 
+            case (7,7):
+                cellsToNewKnowledge.append(  (cell[0] , cell[1]-1)  ) 
+                cellsToNewKnowledge.append(  (cell[0]-1 , cell[1]-1)  ) 
+                cellsToNewKnowledge.append(  (cell[0]-1 , cell[1])  ) 
+            case (0,7):
+                cellsToNewKnowledge.append(  (cell[0] , cell[1]-1)  ) 
+                cellsToNewKnowledge.append(  (cell[0]+1 , cell[1]-1)  ) 
+                cellsToNewKnowledge.append(  (cell[0]+1 , cell[1])  ) 
+            case (7,0):
+                cellsToNewKnowledge.append(  (cell[0]-1 , cell[1])  ) 
+                cellsToNewKnowledge.append(  (cell[0]-1 , cell[1]+1)  ) 
+                cellsToNewKnowledge.append(  (cell[0] , cell[1]+1)  )
+
+            #top cells
+            case (0,y) if 1<= y <= 6:
+                cellsToNewKnowledge.append(  (cell[0] , cell[1]-1)  ) 
+                cellsToNewKnowledge.append(  (cell[0] , cell[1]+1)  ) 
+                cellsToNewKnowledge.append(  (cell[0]+1 , cell[1]-1)  ) 
+                cellsToNewKnowledge.append(  (cell[0]+1 , cell[1])  ) 
+                cellsToNewKnowledge.append(  (cell[0]+1 , cell[1]+1)  ) 
+
+            #bottom cells
+            case (7,y) if 1<= y <= 6:
+                cellsToNewKnowledge.append(  (cell[0]-1 , cell[1]-1)  ) 
+                cellsToNewKnowledge.append(  (cell[0]-1 , cell[1])  ) 
+                cellsToNewKnowledge.append(  (cell[0]-1 , cell[1]+1)  ) 
+                cellsToNewKnowledge.append(  (cell[0] , cell[1]-1)  ) 
+                cellsToNewKnowledge.append(  (cell[0] , cell[1]+1)  ) 
+
+            #left cells
+            case (x,0) if 1<= x <= 6:
+                cellsToNewKnowledge.append(  (cell[0]-1 , cell[1])  ) 
+                cellsToNewKnowledge.append(  (cell[0]-1 , cell[1]+1)  ) 
+                cellsToNewKnowledge.append(  (cell[0] , cell[1]+1)  ) 
+                cellsToNewKnowledge.append(  (cell[0]+1 , cell[1])  ) 
+                cellsToNewKnowledge.append(  (cell[0]+1 , cell[1]+1)  ) 
+
+            #right cells
+            case (x,7) if 1<= x <= 6:
+                cellsToNewKnowledge.append(  (cell[0]-1 , cell[1])  ) 
+                cellsToNewKnowledge.append(  (cell[0]-1 , cell[1]-1)  )
+                cellsToNewKnowledge.append(  (cell[0] , cell[1]-1)  ) 
+                cellsToNewKnowledge.append(  (cell[0]+1 , cell[1])  ) 
+                cellsToNewKnowledge.append(  (cell[0]+1 , cell[1]-1)  ) 
+
+            case _:
+                cellsToNewKnowledge.append(  (cell[0]-1 , cell[1]-1)  ) 
+                cellsToNewKnowledge.append(  (cell[0]-1 , cell[1])  ) 
+                cellsToNewKnowledge.append(  (cell[0]-1 , cell[1]+1)  ) 
+                cellsToNewKnowledge.append(  (cell[0] , cell[1]-1)  ) 
+                cellsToNewKnowledge.append(  (cell[0] , cell[1]+1)  ) 
+                cellsToNewKnowledge.append(  (cell[0]+1 , cell[1]-1)  ) 
+                cellsToNewKnowledge.append(  (cell[0]+1 , cell[1])  ) 
+                cellsToNewKnowledge.append(  (cell[0]+1 , cell[1]+1)  )
+
         newKnowledge = Sentence(cells=cellsToNewKnowledge,count=count)
         self.knowledge.append(newKnowledge)
 
         #4) mark any additional cells as safe or as mines if it can be concluded based on the AI's knowledge base
+        #ideia - se em uma sentença todos forem minas, pode fazer mark_mine em todas outras sentenças e deletar essa sentença
+        #para o mark_safe seria o mesmo
+        # print(f'base de conhecimento inicial: {self.knowledge}')
+        newMinesToMark = []
+        newSafesToMark = []
+        sentencesToRemoveFromKnowledge = []
+        
         for sentence in self.knowledge:
-            knownMines = sentence.known_mines()
-            if knownMines is not set():
-                for mine in knownMines:
-                    self.mark_mine(mine)
-            knownSafes = sentence.known_safes()
-            if knownSafes is not set():
-                for safe in knownSafes:
-                    self.mark_safe(safe)
+            #all cells in sentence are mines
+            if len(sentence.cells) == sentence.count:
+                for mine in sentence.cells:
+                    newMinesToMark.append(mine)
+                sentencesToRemoveFromKnowledge.append(sentence)
+            #all cells in sentence are safes
+            elif sentence.count == 0:
+                for safe in sentence.cells:
+                    newSafesToMark.append(safe)
+                sentencesToRemoveFromKnowledge.append(sentence)
+        # print(f'sentenças a remover: {sentencesToRemoveFromKnowledge}')
+
+        for sentence in sentencesToRemoveFromKnowledge:
+            self.knowledge.remove(sentence)
+        for sentence in self.knowledge:
+            for mine in newMinesToMark:
+                sentence.mark_mine(cell=mine)
+            for safe in newSafesToMark:
+                sentence.mark_safe(cell=safe)
+
 
         #5) add any new sentences to the AI's knowledge base if they can be inferred from existing knowledge
         for sentence1 in self.knowledge:
@@ -236,6 +311,8 @@ class MinesweeperAI():
                         countToNewSentence = sentence1Count-sentence2Count
                         newSentence = Sentence(cells=cellsToNewSentence,count=countToNewSentence)
                         self.knowledge.append(newSentence)
+        
+        # print(f'base de conhecimento após mudanças: {self.knowledge}')
 
 
 
